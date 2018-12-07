@@ -1,1 +1,0 @@
-/usr/bin/g++-7   -std=c++1z -Wall -Wextra   CMakeFiles/trace_test.dir/main.cpp.o  -o trace_test 
