@@ -5,7 +5,6 @@ project( trace_test )
 set (CMAKE_CXX_STANDARD 14)
 
 add_executable( ${PROJECT_NAME}
-	trace.cpp
 	main.cpp
 )
 
