@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/michael/dev/code/traceing/build",
+  "command": "/usr/bin/g++-7     -std=c++1z -Wall -Wextra   -o CMakeFiles/trace_test.dir/main.cpp.o -c /home/michael/dev/code/traceing/main.cpp",
+  "file": "/home/michael/dev/code/traceing/main.cpp"
+}
+]

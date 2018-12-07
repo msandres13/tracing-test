@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <iostream>
+#include <any>
+
 static constexpr uint32_t crc_table[256] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
     0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -48,6 +51,11 @@ static constexpr uint32_t crc_table[256] = {
 };
 
 
+template<typename ...Args>
+void doSomething(Args&&... args) {
+    (std::cout << ... << args) << '\n';
+}
+
 template<int32_t size, int32_t idx = 0, class dummy = void>
 struct generateCRC{
   static constexpr uint32_t crc32(const char * str, uint32_t prev_crc = 0xFFFFFFFF)
@@ -70,6 +78,7 @@ template <typename ... TARGS>
 void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
 {
 	printf("trace_buffer %d hash %u sizeof args %ld\n",trace_buffer, hash, sizeof...(args));
+    doSomething(args...);
 }
 
 #define STR(a) #a 
@@ -81,12 +90,13 @@ etrace(a,COMPILE_TIME_CRC32_STR(b "       |at " __FILE__ ", line " STRX(__LINE__
 int32_t main(int32_t , char **)
 {
     ETRACE(0,"abc");
-    ETRACE(0,"abc %d",0);ETRACE(0,"abc12 %d",0);
-    ETRACE(0,"abc %d",0);
-    ETRACE(0,"abcd %d",0);
-    ETRACE(0,"abcde %d",0);
-    ETRACE(0,"aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",0);
-    ETRACE(0,"aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",0);
+    ETRACE(0,"abc %d",0);ETRACE(0,"abc12 %d",1);
+    ETRACE(0,"abc %d",2);
+    ETRACE(0,"abcd %d",3);
+    ETRACE(0,"abcde %d",4);
+    ETRACE(0,"aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
+    ETRACE(0,"aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
+    ETRACE(0,"abcde %d %s %f",4,"abc",0.5);
 
     return 0;
 }
