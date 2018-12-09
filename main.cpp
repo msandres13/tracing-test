@@ -52,7 +52,7 @@ static constexpr uint32_t crc_table[256] = {
 
 
 template<typename ...Args>
-void doSomething(Args&&... args) {
+void write_trace_to_storage(Args&&... args) {
     (std::cout << ... << args) << '\n';
 }
 
@@ -77,8 +77,8 @@ struct generateCRC<size, size, dummy>{
 template <typename ... TARGS>
 void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
 {
-	printf("trace_buffer %d hash %u sizeof args %ld\n",trace_buffer, hash, sizeof...(args));
-    doSomething(args...);
+	printf("trace_buffer %d hash %u sizeof args %ld\n",trace_buffer, hash^ 0xFFFFFFFFul, sizeof...(args));
+    write_trace_to_storage(args...);
 }
 
 #define STR(a) #a 
@@ -89,14 +89,14 @@ etrace(a,COMPILE_TIME_CRC32_STR(b "       |at " __FILE__ ", line " STRX(__LINE__
 
 int32_t main(int32_t , char **)
 {
-    ETRACE(0,"abc");
-    ETRACE(0,"abc %d",0);ETRACE(0,"abc12 %d",1);
-    ETRACE(0,"abc %d",2);
-    ETRACE(0,"abcd %d",3);
-    ETRACE(0,"abcde %d",4);
-    ETRACE(0,"aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
-    ETRACE(0,"aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
-    ETRACE(0,"abcde %d %s %f",4,"abc",0.5);
+    ETRACE(0,"1:abc");
+    ETRACE(0,"2:abc %d",0);ETRACE(0,"2:1:abc12 %d",1);
+    ETRACE(0,"3:abc %d",2);
+    ETRACE(0,"4:abcd %d",3);
+    ETRACE(0,"5:abcde %d",4);
+    ETRACE(0,"6:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
+    ETRACE(0,"7:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
+    ETRACE(0,"8:abcde %d %s %f",4,"abc",0.5);
 
     return 0;
 }
