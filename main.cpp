@@ -2,7 +2,9 @@
 #include <stdio.h>
 
 #include <iostream>
-#include <any>
+
+//https://gist.github.com/oktal/5573082
+// MM https://stackoverflow.com/questions/2111667/compile-time-string-hashing/23683218
 
 static constexpr uint32_t crc_table[256] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -50,11 +52,7 @@ static constexpr uint32_t crc_table[256] = {
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-
-template<typename ...Args>
-void write_trace_to_storage(Args&&... args) {
-    (std::cout << ... << args) << '\n';
-}
+#if 0
 
 template<int32_t size, int32_t idx = 0, class dummy = void>
 struct generateCRC{
@@ -72,31 +70,75 @@ struct generateCRC<size, size, dummy>{
   }
 };
 
-#define COMPILE_TIME_CRC32_STR(x) (generateCRC<sizeof(x)-1>::crc32(x))
+//template<char ...Chars> using Crc32 = Crc32Impl<0xFFFFFFFF, Chars...>;
+
+constexpr unsigned int crc32_rec(unsigned int crc, const char *s) {
+    return *s == 0 ? crc ^ 0xFFFFFFFF :
+        crc32_rec(crc_table[static_cast<unsigned char>(crc) ^ 
+                   static_cast<unsigned char>(*s)]
+            ^ (crc >> 8), s + 1);
+}
+
+constexpr unsigned int operator "" _crc32(const char *s, size_t len) {
+    return crc32_rec(0xFFFFFFFF, s);
+}
+
+//#define COMPILE_TIME_CRC32_STR(__hashingstring) __hashingstring _crc32
+#define COMPILE_TIME_CRC32_STR(__hashingstring) (generateCRC<sizeof(__hashingstring)-1>::crc32(__hashingstring))
+
+#endif
+
+template<int size, int idx = 0, class dummy = void>
+struct MM{
+  static constexpr unsigned int crc32(const char * str, unsigned int prev_crc = 0xFFFFFFFF)
+  {
+      return MM<size, idx+1>::crc32(str, (prev_crc >> 8) ^ crc_table[(prev_crc ^ str[idx]) & 0xFF] );
+  }
+};
+
+// This is the stop-recursion function
+template<int size, class dummy>
+struct MM<size, size, dummy>{
+  static constexpr unsigned int crc32(const char * str, unsigned int prev_crc = 0xFFFFFFFF)
+  {
+      return prev_crc^ 0xFFFFFFFF;
+  }
+};
+
+// This don't take into account the nul char
+#define COMPILE_TIME_CRC32_STR(x) (MM<sizeof(x)-1>::crc32(x))
+
+
+template<typename ...Args>
+void write_trace_to_storage(Args&&... args) {
+    //(std::cout << ... << args) << '\n';
+}
 
 template <typename ... TARGS>
-void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
+constexpr void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
 {
-	printf("trace_buffer %d hash %u sizeof args %ld\n",trace_buffer, hash^ 0xFFFFFFFFul, sizeof...(args));
+	printf("trace_buffer %d hash %u sizeof args %ld\n",trace_buffer, hash, sizeof...(args));
     write_trace_to_storage(args...);
 }
 
 #define STR(a) #a 
 #define STRX(a) STR(a) 
 
-#define ETRACE(a,b, ...) \
-etrace(a,COMPILE_TIME_CRC32_STR(b "       |at " __FILE__ ", line " STRX(__LINE__) ) , ##__VA_ARGS__)
+#define ETRACE(__a,__b, ...) \
+etrace(__a,COMPILE_TIME_CRC32_STR(__b "       |at " __FILE__ ", line " STRX(__LINE__) ) , ##__VA_ARGS__)
 
 int32_t main(int32_t , char **)
 {
+    const uint32_t hash=COMPILE_TIME_CRC32_STR("abc");
+    printf("crc test %d\n",hash);
     ETRACE(0,"1:abc");
     ETRACE(0,"2:abc %d",0);ETRACE(0,"2:1:abc12 %d",1);
     ETRACE(0,"3:abc %d",2);
-    ETRACE(0,"4:abcd %d",3);
-    ETRACE(0,"5:abcde %d",4);
-    ETRACE(0,"6:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
-    ETRACE(0,"7:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
-    ETRACE(0,"8:abcde %d %s %f",4,"abc",0.5);
+    // ETRACE(0,"4:abcd %d",3);
+    // ETRACE(0,"5:abcde %d",4);
+    // ETRACE(0,"6:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
+    // ETRACE(0,"7:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
+    // ETRACE(0,"8:abcde %d %s %f",4,"abc",0.5);
 
     return 0;
 }
