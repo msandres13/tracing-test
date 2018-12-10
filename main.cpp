@@ -3,8 +3,7 @@
 
 #include <iostream>
 
-//https://gist.github.com/oktal/5573082
-// MM https://stackoverflow.com/questions/2111667/compile-time-string-hashing/23683218
+// Based on discussion at https://stackoverflow.com/questions/2111667/compile-time-string-hashing/23683218
 
 static constexpr uint32_t crc_table[256] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -52,72 +51,36 @@ static constexpr uint32_t crc_table[256] = {
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-#if 0
-
-template<int32_t size, int32_t idx = 0, class dummy = void>
+template<int size, int idx = 0, class dummy = void>
 struct generateCRC{
-  static constexpr uint32_t crc32(const char * str, uint32_t prev_crc = 0xFFFFFFFF)
+  static constexpr unsigned int crc32(const char * str, unsigned int prev_crc = 0xFFFFFFFF)
   {
       return generateCRC<size, idx+1>::crc32(str, (prev_crc >> 8) ^ crc_table[(prev_crc ^ str[idx]) & 0xFF] );
   }
 };
 
-template<int32_t size, class dummy>
-struct generateCRC<size, size, dummy>{
-  static constexpr uint32_t crc32(const char * , uint32_t prev_crc = 0xFFFFFFFF)
-  {
-      return prev_crc ^ 0xFFFFFFFF;
-  }
-};
-
-//template<char ...Chars> using Crc32 = Crc32Impl<0xFFFFFFFF, Chars...>;
-
-constexpr unsigned int crc32_rec(unsigned int crc, const char *s) {
-    return *s == 0 ? crc ^ 0xFFFFFFFF :
-        crc32_rec(crc_table[static_cast<unsigned char>(crc) ^ 
-                   static_cast<unsigned char>(*s)]
-            ^ (crc >> 8), s + 1);
-}
-
-constexpr unsigned int operator "" _crc32(const char *s, size_t len) {
-    return crc32_rec(0xFFFFFFFF, s);
-}
-
-//#define COMPILE_TIME_CRC32_STR(__hashingstring) __hashingstring _crc32
-#define COMPILE_TIME_CRC32_STR(__hashingstring) (generateCRC<sizeof(__hashingstring)-1>::crc32(__hashingstring))
-
-#endif
-
-template<int size, int idx = 0, class dummy = void>
-struct MM{
-  static constexpr unsigned int crc32(const char * str, unsigned int prev_crc = 0xFFFFFFFF)
-  {
-      return MM<size, idx+1>::crc32(str, (prev_crc >> 8) ^ crc_table[(prev_crc ^ str[idx]) & 0xFF] );
-  }
-};
-
 // This is the stop-recursion function
 template<int size, class dummy>
-struct MM<size, size, dummy>{
-  static constexpr unsigned int crc32(const char * str, unsigned int prev_crc = 0xFFFFFFFF)
+struct generateCRC<size, size, dummy>{
+  static constexpr unsigned int crc32(const char *, unsigned int prev_crc = 0xFFFFFFFF)
   {
       return prev_crc^ 0xFFFFFFFF;
   }
 };
 
 // This don't take into account the nul char
-#define COMPILE_TIME_CRC32_STR(x) (MM<sizeof(x)-1>::crc32(x))
+#define COMPILE_TIME_CRC32_STR(x) ( generateCRC<sizeof(x) -1>::crc32( x ) )
 
 
 template<typename ...Args>
 void write_trace_to_storage(Args&&... args) {
-    //(std::cout << ... << args) << '\n';
+    (std::cout << "Parameters: " << ... << args) << '\n';
 }
 
 template <typename ... TARGS>
-constexpr void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
+void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
 {
-	printf("trace_buffer %d hash %u sizeof args %ld\n",trace_buffer, hash, sizeof...(args));
+	printf("trace_buffer %d hash %u sizeof args %ld |",trace_buffer, hash, sizeof...(args));
     write_trace_to_storage(args...);
 }
 
@@ -125,20 +88,29 @@ constexpr void etrace(int32_t trace_buffer, const uint32_t hash, TARGS ... args)
 #define STRX(a) STR(a) 
 
 #define ETRACE(__a,__b, ...) \
-etrace(__a,COMPILE_TIME_CRC32_STR(__b "       |at " __FILE__ ", line " STRX(__LINE__) ) , ##__VA_ARGS__)
+{\
+    static constexpr char __tempConstStr421305[]=__b "       |at " __FILE__ ", line " STRX(__LINE__);\
+    constexpr uint32_t _____temp1=COMPILE_TIME_CRC32_STR(__tempConstStr421305);\
+    etrace(__a,  _____temp1, ##__VA_ARGS__);} void REMOVE_SEMICOLON_WARNING_DUMMY_FUNC()
 
 int32_t main(int32_t , char **)
 {
-    const uint32_t hash=COMPILE_TIME_CRC32_STR("abc");
-    printf("crc test %d\n",hash);
-    ETRACE(0,"1:abc");
-    ETRACE(0,"2:abc %d",0);ETRACE(0,"2:1:abc12 %d",1);
-    ETRACE(0,"3:abc %d",2);
-    // ETRACE(0,"4:abcd %d",3);
-    // ETRACE(0,"5:abcde %d",4);
-    // ETRACE(0,"6:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
-    // ETRACE(0,"7:aasasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
-    // ETRACE(0,"8:abcde %d %s %f",4,"abc",0.5);
+    // const uint32_t hash=COMPILE_TIME_CRC32_STR("abc");
+    // printf("crc test %d\n",hash);
+
+    // ETRACE(0,"1:abc");
+    // ETRACE(0,"2:abc %d",0);ETRACE(0,"2:1:abc12 %d",1);
+    // ETRACE(0,"3:abc %d",2);
+    // ETRACE(0,"4:abc d %d",3);
+    // ETRACE(0,"5:abc de %d",4);
+    // ETRACE(0,"6:abc asasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
+    // ETRACE(0,"7:abc asasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
+    uint16_t a1=23;
+    uint8_t a2=3;
+    float a3=0.8;
+    char a4='c';
+
+    ETRACE(0,"8:abc de %d %s %f %d %d %f %c",4,"abc",0.5,a1,a2,a3,a4);
 
     return 0;
 }

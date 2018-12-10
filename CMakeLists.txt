@@ -8,6 +8,6 @@ add_executable( ${PROJECT_NAME}
 	main.cpp
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -std=c++1z -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -Wall -Wextra")
 
 message ("-------------------END-----------------------------" )
