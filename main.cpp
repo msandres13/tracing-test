@@ -98,13 +98,13 @@ int32_t main(int32_t , char **)
     // const uint32_t hash=COMPILE_TIME_CRC32_STR("abc");
     // printf("crc test %d\n",hash);
 
-    // ETRACE(0,"1:abc");
-    // ETRACE(0,"2:abc %d",0);ETRACE(0,"2:1:abc12 %d",1);
-    // ETRACE(0,"3:abc %d",2);
-    // ETRACE(0,"4:abc d %d",3);
-    // ETRACE(0,"5:abc de %d",4);
-    // ETRACE(0,"6:abc asasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
-    // ETRACE(0,"7:abc asasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
+    ETRACE(0,"1:abc");
+    ETRACE(0,"2:abc %d",0);ETRACE(0,"2:1:abc12 %d",1);
+    ETRACE(0,"3:abc %d",2);
+    ETRACE(0,"4:abc d %d",3);
+    ETRACE(0,"5:abc de %d",4);
+    ETRACE(0,"6:abc asasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",5);
+    ETRACE(0,"7:abc asasasdasdasdasjdasjdklashhhhsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjdkasdkasjdkhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhasjdfkaskfjaskfjaskfaskfjasklfjasklfjasklfjasklfjkaslfjklasfjasklfjasklfjlkasfjklasfjlkasfjklasfjasklfjlaskfjlaskfjlaskjflasfjlasfjasflasjflaslbcde %d",6);
     uint16_t a1=23;
     uint8_t a2=3;
     float a3=0.8;
